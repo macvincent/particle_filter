@@ -22,6 +22,7 @@ struct Particle {
   std::vector<int> associations;
   std::vector<double> sense_x;
   std::vector<double> sense_y;
+  Particle(int id, double x, double iy, double theta, double weight):id(id),x(x),y(y),theta(theta),weight(weight){}
 };
 
 
@@ -76,7 +77,7 @@ class ParticleFilter {
    * @param map Map class containing map landmarks
    */
   void updateWeights(double sensor_range, double std_landmark[], 
-                     const std::vector<LandmarkObs> &observations,
+                    std::vector<LandmarkObs> &observations,
                      const Map &map_landmarks);
   
   /**

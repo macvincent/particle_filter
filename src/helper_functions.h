@@ -46,6 +46,7 @@ struct LandmarkObs {
   int id;     // Id of matching landmark in the map.
   double x;   // Local (vehicle coords) x position of landmark observation [m]
   double y;   // Local (vehicle coords) y position of landmark observation [m]
+  double gausian;
 };
 
 /**
@@ -248,4 +249,28 @@ inline bool read_landmark_data(std::string filename,
   return true;
 }
 
+double find_gaussian(double x, double y, double ux, double uy, double sdx = 0.3, double sdy = 0.3){
+    double param1 = 1/(2*M_PI*sdx*sdy);
+    std::cout << param1 << std::endl;
+    double param2 = -1 * (pow(x - ux,2)/(2*pow(sdx,2)) + pow(y-uy, 2)/(2*pow(sdy,2)));
+    std::cout << param2 << std::endl;
+    return param1 * exp(param2);
+}
+
+float dist (vector<double>a, vector<double> b){
+    int x = pow(a[0] - b[0], 2);
+    int y = pow(a[1] - b[1], 2);
+    return pow(x + y, 0.5);
+}
+float find_closest(vector<double>obs, vector<vector<double>> landmarks){
+    float distance = dist(obs, landmarks[0]);
+    float result = 0;
+    for(int i = 1; i < landmarks.size(); i++){
+        if(dist(obs, landmarks[i]) < distance){
+            distance = dist(obs, landmarks[i]);
+            result = i;
+        }
+    }
+    return result+1;
+}
 #endif  // HELPER_FUNCTIONS_H_
