@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <numeric>
-#include <random>
 #include <string>
 #include <vector>
 #include <climits>
@@ -22,11 +20,15 @@ using std::string;
 using std::vector;
 using std::uniform_real_distribution;
 using std::uniform_int_distribution;
+std::default_random_engine gen;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
-  num_particles = 50;  // Set the number of particles
-  std::default_random_engine gen;
-  // This line creates a normal (Gaussian) distribution for x
+  num_particles = 100;  // Set the number of particles to be used in the filter
+  
+  /*
+    Creates a normal (Gaussian) distribution for particles' initial x, y, and theta based
+    on gps data and measurement noise
+  */
   normal_distribution<double> dist_x(x, std[0]);
   normal_distribution<double> dist_y(y, std[1]);
   normal_distribution<double> dist_theta(theta, std[2]);
@@ -45,12 +47,12 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 
                                 double velocity, double yaw_rate) {
-    std::default_random_engine gen;
-    // This line creates a normal (Gaussian) distribution for each of the predictions
+    // This line creates a normal (Gaussian) distribution for the noise predictions
     normal_distribution<double> dist_x(0, std_pos[0]);
     normal_distribution<double> dist_y(0, std_pos[1]);
     normal_distribution<double> dist_theta(0, std_pos[2]);
 
+// Predict new position based on past position, velocity, time, and yaw_rate data
   for (auto& particle : particles){
     double theta = particle.theta;
     if(fabs(yaw_rate)  < 0.00001){
@@ -67,8 +69,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     particle.theta += dist_theta(gen);
   }
 }
+// Transform observation data from car coordinates to map coordinates
 LandmarkObs transformation(int id, float x_particle, float y_particle, float heading_particle, float x_obs, float y_obs){
-    float teta = heading_particle; // coonvert heading to radian
+    float teta = heading_particle;
     LandmarkObs return_value;
     return_value.x = x_particle + (cos(teta) * x_obs) - (sin(teta)* y_obs);
     return_value.y = y_particle + (sin(teta) * x_obs) + (cos(teta) * y_obs);
@@ -79,8 +82,7 @@ LandmarkObs transformation(int id, float x_particle, float y_particle, float hea
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
                                     vector<LandmarkObs> &observations, 
                                    const Map &map_landmarks) {
-  std::default_random_engine gen;
-
+  // For each particle we update its weight
   for (auto& particle: particles){
     vector<LandmarkObs> transformed_observation;
     double gaussian = 1.0;
@@ -111,8 +113,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 }
  
 void ParticleFilter::resample() {
+  // choose new particles based on their current weights
   vector<Particle> new_particles;
-  std::default_random_engine gen;
   for (int i = 0; i < num_particles; i++) {
     std::discrete_distribution<int> index(weights.begin(), weights.end());
     new_particles.push_back(particles[index(gen)]);
