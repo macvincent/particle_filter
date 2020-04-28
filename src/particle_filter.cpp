@@ -24,15 +24,7 @@ using std::uniform_real_distribution;
 using std::uniform_int_distribution;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
-  /**
-   * TODO: Set the number of particles. Initialize all particles to 
-   *   first position (based on estimates of x, y, theta and their uncertainties
-   *   from GPS) and all weights to 1. 
-   * TODO: Add random Gaussian noise to each particle.
-   * NOTE: Consult particle_filter.h for more information about this method 
-   *   (and others in this file).
-   */
-  num_particles = 50;  // TODO: Set the number of particles
+  num_particles = 50;  // Set the number of particles
   std::default_random_engine gen;
   // This line creates a normal (Gaussian) distribution for x
   normal_distribution<double> dist_x(x, std[0]);
@@ -53,14 +45,6 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], 
                                 double velocity, double yaw_rate) {
-  /**
-   * TODO: Add measurements to each particle and add random Gaussian noise.
-   * NOTE: When adding noise you may find std::normal_distribution 
-   *   and std::default_random_engine useful.
-   *  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
-   *  http://www.cplusplus.com/reference/random/default_random_engine/
-   */
-
     std::default_random_engine gen;
     // This line creates a normal (Gaussian) distribution for each of the predictions
     normal_distribution<double> dist_x(0, std_pos[0]);
@@ -119,7 +103,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
           dist_from_particle.push_back(100000);
         }
       }
-      // std::cout << find_gaussian(prx, pry, transformed_observation.x, transformed_observation.y, std_landmark[0], std_landmark[1]) << std::endl;
       gaussian *= find_gaussian(prx, pry, transformed_observation.x, transformed_observation.y, std_landmark[0], std_landmark[1]);
     }
     particle.weight = gaussian;
@@ -128,21 +111,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 }
  
 void ParticleFilter::resample() {
-	// Resamples particles with replacement with probability proportional to their weight.
-  
-  // Vector for new particles
-  vector<Particle> new_particles (num_particles);
-  
-  // Use discrete distribution to return particles by weight
+  vector<Particle> new_particles;
   std::default_random_engine gen;
-
-  for (int i = 0; i < num_particles; ++i) {
+  for (int i = 0; i < num_particles; i++) {
     std::discrete_distribution<int> index(weights.begin(), weights.end());
-    new_particles[i] = particles[index(gen)];
-    
+    new_particles.push_back(particles[index(gen)]);
   }
-
-  // Replace old particles with the resampled particles
   particles = new_particles;
   weights.clear();
 }
